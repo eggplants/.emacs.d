@@ -28,6 +28,10 @@
 
 - IDEっぽくしたい
 
+- org-modeになれる
+
+  - REF. https://takaxp.github.io/org-ja.html
+
 ** TIPS
 
 #+BEGIN_SRC bash
