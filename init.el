@@ -29,13 +29,13 @@
 
 (require 'package)
 
-;;  
+;;
 ;; add package manager
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 (add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
 (add-to-list 'package-archives '("ELPA" . "http://tromey.com/elpa/") t)
-  
+
 (package-initialize)
 
 (custom-set-variables
@@ -45,10 +45,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (smooth-scroll powerline hlinum blank-mode
-		   lsp-ui jedi slime lsp-mode monokai-theme
-		   atom-one-dark-theme changelog-url flycheck-package
-		   auto-complete flycheck package-lint helm))))
+    (rainbow-delimiters rainbow-mode company-jedi slime-company ac-slime fuzzy auto-complete-rst smooth-scroll powerline hlinum blank-mode lsp-ui jedi slime lsp-mode monokai-theme atom-one-dark-theme changelog-url flycheck-package flycheck package-lint helm))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -78,6 +75,53 @@
 ;; package config ;;
 ;;;;;;;;;;;;;;;;;;;;
 ;;
+;; use-package
+(eval-when-compile (require 'use-package))
+;; (require 'diminish)    ;; if you use :diminish
+;; (require 'bind-key)    ;; if you use any :bind variant
+(setq use-package-verbose t)
+(setq use-package-minimum-reported-time 0.001)
+
+;;
+;; auto-complete
+;; (require 'auto-complete)
+;; (require 'auto-complete-config)
+;; (require 'fuzzy) ;; fuzzy search (heaby)
+;; (setq ac-use-fuzzy t)
+;; (global-auto-complete-mode t)
+;; (ac-config-default)
+;; (setq ac-delay 0)
+;; (setq ac-auto-show-menu 0.05)
+;; (ac-set-trigger-key "TAB")
+;; (setq ac-use-menu-map t)
+;; (setq ac-menu-height 25)
+;; (setq ac-auto-start 2)
+;; (setq ac-ignore-case t)
+;; (define-key ac-completing-map (kbd "<tab>") 'ac-complete)
+
+;;
+;; rainbow-mode, rainbow-delimiters
+(require 'rainbow-delimiters)
+(add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+
+;; 括弧の色を強調する設定
+(require 'cl-lib)
+(require 'color)
+(defun rainbow-delimiters-using-stronger-colors ()
+  (interactive)
+  (cl-loop
+   for index from 1 to rainbow-delimiters-max-face-count
+   do
+   (let ((face (intern (format "rainbow-delimiters-depth-%d-face" index))))
+     (cl-callf color-saturate-name (face-foreground face) 30))))
+
+(add-hook 'emacs-startup-hook 'rainbow-delimiters-using-stronger-colors)
+(add-hook 'css-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'html-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'emacs-lisp-mode-hook 'rainbow-delimiters-mode)
+(add-hook 'lisp-mode-hook 'rainbow-delimiters-mode)
+
+;;
 ;; powerline
 (require 'powerline)
 ;; (powerline-nano-theme)
@@ -85,7 +129,13 @@
 
 ;;
 ;; slime
-(load (expand-file-name "~/.roswell/helper.el"))
+;; (load (expand-file-name "~/.roswell/helper.el"))
+(use-package slime
+  :if (file-exists-p "~/.roswell/helper.el")
+  :ensure slime-company
+  :init (load "~/.roswell/helper.el")
+  :custom (inferior-lisp-program "ros -Q run")
+  :config (slime-setup '(slime-fancy slime-company)))
 
 ;;
 ;; flycheck, flycheck-package
@@ -100,9 +150,29 @@
 
 ;;
 ;; jedi - python lsp
-(require 'jedi)
-(add-hook 'python-mode-hook 'jedi:setup)
+;; (require 'jedi)
+;; (add-hook 'python-mode-hook 'jedi:setup)
+;; (setq jedi:complete-on-dot t)
+(require 'jedi-core)
 (setq jedi:complete-on-dot t)
+(setq jedi:use-shortcuts t)
+(add-hook 'python-mode-hook 'jedi:setup)
+(add-to-list 'company-backends 'company-jedi)
+
+;;
+;; common lisp lsp
+;;;; Common Lisp
+;; (setq inferior-lisp-program "ccl64")
+;; (setq inferior-lisp-program "clisp")
+;; (add-hook 'lisp-mode-hook
+;;           (lambda ()
+;;             ;; (slime-mode t)
+;;             (define-key lisp-mode-map (kbd "C-c C-s") 'slime)
+;;             (add-to-list 'ac-sources 'ac-source-slime)))
+;; (add-hook 'comint-mode-hook
+;;           (lambda ()
+;;             ;; (slime-mode t)
+;;            (auto-complete-mode t)))
 
 ;;
 ;; helm
